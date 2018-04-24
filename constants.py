@@ -12,3 +12,7 @@ root_path = os.path.dirname(os.path.abspath(__file__))
 print("Root : ",root_path)
 img_train_path = root_path + "/projetface/train/*.jpg"
 label_path = root_path + "/projetface/label.txt"
+extracted_faces_path = "/extractedData"
+pos_faces = "/pos"
+neg_faces = "/neg"
+extracted_pos_faces_path = extracted_faces_path + pos_faces

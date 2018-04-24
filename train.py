@@ -6,8 +6,8 @@ Created on Tue Apr 17 19:12:33 2018
 @author: Nico
 """
 import io as io
-import os
-import glob
+from PIL import Image
+import os, glob, errno
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -22,21 +22,10 @@ from constants import *
 
 img_train_dir_content = sorted(glob.glob(img_train_path))
 label = np.loadtxt(label_path)
-
-def loadImagesDirectory():
-    #--------------------------------------------
-    #----Loading training positive images -------
-    images[j] = io.imread(x, as_grey=True)
-
-def loadLabels():
-    #--------------------------------------------
-    #----Loading label -------
-    label = np.loadtxt("projetface/label.txt")
     
 def displayRectOnImg(image, rect_coord):
     # Create figure and axes
     fig,ax = plt.subplots(1)
-    
     # Display the image
     ax.imshow(image)
     # Create a Rectangle patch
@@ -45,6 +34,29 @@ def displayRectOnImg(image, rect_coord):
     ax.add_patch(rect)
     
     plt.show()
+    
+def extractPosFaces(path, label):
+    # Creating directory where we'll put positive faces
+    try:
+        os.makedirs(root_path + extracted_pos_faces_path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+    j=0
+    for i in img_train_dir_content: 
+        img = Image.open(i)
+        # Defining box to extract defined in label
+        coord = label[j]
+        box = (coord[1], coord[2], coord[1] + coord[3], coord[2] + coord[4])
+        # Crop image 
+        face = img.crop(box)
+        # Save image 
+        face.save(root_path + extracted_pos_faces_path + '/' + os.path.basename(i), 'JPEG')
+        j = j + 1
+        
+extractPosFaces(img_train_dir_content, label)
+
+    
 
 
     
