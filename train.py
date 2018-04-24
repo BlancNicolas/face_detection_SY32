@@ -54,9 +54,8 @@ def extractPosFaces(path, label):
         face.save(root_path + extracted_pos_faces_path + '/' + os.path.basename(i), 'JPEG')
         j = j + 1
         
-extractPosFaces(img_train_dir_content, label)
 
-    
+
 
 
     

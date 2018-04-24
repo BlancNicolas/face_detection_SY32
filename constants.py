@@ -7,9 +7,7 @@ Created on Mon Apr 23 15:20:48 2018
 """
 import os
 
-
 root_path = os.path.dirname(os.path.abspath(__file__))
-print("Root : ",root_path)
 img_train_path = root_path + "/projetface/train/*.jpg"
 label_path = root_path + "/projetface/label.txt"
 extracted_faces_path = "/extractedData"
