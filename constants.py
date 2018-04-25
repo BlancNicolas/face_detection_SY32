@@ -15,6 +15,8 @@ extracted_faces_path = "/extractedData"
 pos_faces = "/pos"
 neg_faces = "/neg"
 extracted_pos_faces_path = extracted_faces_path + pos_faces
+extracted_neg_faces_path = extracted_faces_path + neg_faces
 
 #Constant for the size of sliding window
 WINDOW_SIZE = [32, 32]
+

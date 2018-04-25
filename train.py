@@ -19,38 +19,24 @@ from skimage import io
 from skimage import util
 from constants import *
 
+#Classifier arguments
+c_param = 1.0
+
 img_train_dir_content = sorted(glob.glob(img_train_path))
 label = np.loadtxt(label_path)
+clf = svm.LinearSVC(C = c_param)
 
-def displayRectOnImg(image, rect_coord):
-    # Create figure and axes
-    fig,ax = plt.subplots(1)
-    # Display the image
-    ax.imshow(image)
-    # Create a Rectangle patch
-    rect = patches.Rectangle((rect_coord[1], rect_coord[2]), rect_coord[3],rect_coord[4],linewidth=1,edgecolor='r',facecolor='none')
-    # Add the patch to the Axes
-    ax.add_patch(rect)
+def classifierTraining(neg_path, pos_path):
 
-    plt.show()
+    train_dir_content = np.concatenate((glob.glob(pos_path),glob.glob(neg_path)), axis=0)
+    images = io.imread(train_dir_content)
+    hog_train = np.empty(len(images))
 
-def extractPosFaces(path, label):
-    # Creating directory where we'll put positive faces
-    try:
-        os.makedirs(root_path + extracted_pos_faces_path)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
-    j=0
-    for i in img_train_dir_content:
-        img = Image.open(i)
-        # Defining box to extract defined in label
-        coord = label[j]
-        box = (coord[1], coord[2], coord[1] + coord[3], coord[2] + coord[4])
-        # Crop image
-        face = img.crop(box)
-        # Save image
-        face.save(root_path + extracted_pos_faces_path + '/' + os.path.basename(i), 'JPEG')
-        j = j + 1
+    for idx, img in enumerate(images):
+        hog_train[idx] = hog(img)
+
+    clf.fit(hog_train)
+
+
 
 
