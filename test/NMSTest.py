@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from NMS import *
+from util.NMS import *
 import numpy as np
 
 
