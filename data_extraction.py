@@ -16,6 +16,16 @@ from train import *
 from util.utils import *
 from random import randint
 
+
+#-----------------------------------------------
+# ---------- extractPosFaces  ------------------
+# GOAL : extract positive faces from train images thanks to labels
+# INPUT :
+    # path : path where train images are stored
+    # label : array of labels
+
+# OUTPUT : none
+#-----------------------------------------------
 def extractPosFaces(path, label):
     # Creating directory where we'll put positive faces
     try:
@@ -35,7 +45,16 @@ def extractPosFaces(path, label):
         face.save(root_path + extracted_pos_faces_path + '/' + os.path.basename(i), 'JPEG')
         j = j + 1
 
-def generateNegativeSample(path, label):
+#-------------------------------------------------------
+# ---------- generateNegativeSamples  ------------------
+# GOAL : generates random negative samples from train images
+# INPUT :
+    # path : path where train images are stored
+    # label : array of labels
+
+# OUTPUT : none
+#-------------------------------------------------------
+def generateNegativeSamples(path, label):
     print(" -- Generating negative samples -- ")
     # Creating directory where we'll put positive faces
     try:
@@ -74,5 +93,5 @@ def generateNegativeSample(path, label):
             idx = idx + 1
 
 
-#generateNegativeSample(img_train_dir_content, label)
+#generateNegativeSamples(img_train_dir_content, label)
 
