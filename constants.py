@@ -19,4 +19,7 @@ extracted_neg_faces_path = extracted_faces_path + neg_faces
 
 #Constant for the size of sliding window
 WINDOW_SIZE = [32, 32]
+MAX_WIDTH = 300
+MIN_WIDTH = 30
+
 
