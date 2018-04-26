@@ -21,6 +21,7 @@ extracted_neg_faces_path = extracted_faces_path + neg_faces
 WINDOW_SIZE = [32, 32]
 MAX_WIDTH = 300
 MIN_WIDTH = 30
+MIN_HEIGHT = 30
 
 # Cojstants for data extraction
 NEGATIVE_SAMPLES_NUMBER = 1000
