@@ -13,6 +13,7 @@ from skimage import io
 from skimage import util
 from constants import *
 from train import *
+from util.utils import *
 from random import randint
 from matplotlib import image
 
@@ -42,9 +43,12 @@ def generateNegativeSample(path, label):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-    for (idx, content) in enumerate(img_train_dir_content):
+
+    samples_number = 0
+    idx = 0
+    while samples_number < NEGATIVE_SAMPLES_NUMBER:
         print("idx :", idx)
-        img = io.imread(content)
+        img = io.imread(img_train_dir_content[idx])
         # Defining box to extract defined in label
         width = randint(MIN_WIDTH, MAX_WIDTH)
         factor = randint(10, 20)/10
@@ -53,12 +57,19 @@ def generateNegativeSample(path, label):
         y1 = randint(0, img.shape[1])
         x2 = x1 + width
         y2 = y1 + height
-        # Crop image
-        neg_face = img[x1:x2, y1:y2]
-        # Path
-        path = root_path + extracted_neg_faces_path + '/' + "0" + str(1+len(img_train_dir_content)+idx) + ".png"
-        # Save image
-        image.imsave(path, neg_face)
+        # Check if the box is not similar to the real box in label
+        current_label = label[idx]
+        area_label = [current_label[1], current_label[2], current_label[1]+current_label[3], current_label[2]+current_label[4]]
+        area_new_box = [x1, y1, x2, y2 ]
+        if not compareAreas(area_new_box, area_label) > 0.1:
+            # Crop image
+            neg_face = img[x1:x2, y1:y2]
+            # Path
+            path = root_path + extracted_neg_faces_path + '/' + "0" + str(1+len(img_train_dir_content)+idx) + ".jpg"
+            # Save image
+            image.imsave(path, neg_face)
+            idx = idx + 1
+
 
 generateNegativeSample(img_train_dir_content, label)
 

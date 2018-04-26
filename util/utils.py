@@ -37,7 +37,7 @@ def displayRectOnImg(image, rect_coord):
 def createLabels(len_yes, len_no):
     return np.concatenate((np.ones(len_yes), np.zeros(len_no)), axis = 0)
 
-def compare_area(b1, b2):
+def compareAreas(b1, b2):
 	# find the overlapping area of the two boxes
 	xx1 = np.maximum(b1[0], b2[0])
 	yy1 = np.maximum(b1[1], b2[1])
