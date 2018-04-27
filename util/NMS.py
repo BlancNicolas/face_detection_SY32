@@ -13,7 +13,7 @@ import numpy as np
 #   - scores = a list of scores associated with each box
 # Output : the list of boxes to keep
 # Source : Adrian Rosebrock, (Faster) Non Maximum Suppression in Python.
-def non_max_suppression(boxes, scores, overlap_thres=0.5):
+def nonMaxSuppression(boxes, scores, overlap_thres=0.5):
 	# if there are no boxes, return an empty list
 	if len(boxes) == 0:
 		return []

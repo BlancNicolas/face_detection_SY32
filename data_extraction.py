@@ -27,6 +27,7 @@ from random import randint
 # OUTPUT : none
 #-----------------------------------------------
 def extractPosFaces(path, label):
+    print(" -- Extracting positive faces -- ")
     # Creating directory where we'll put positive faces
     try:
         os.makedirs(root_path + extracted_pos_faces_path)
