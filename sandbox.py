@@ -48,7 +48,7 @@ def learningFromImage(path_raw_data, labels, classifier):
             if resized.shape[0] < 32 or resized.shape[1] < 32:
                 break
             step = 16
-            boxes, windows = slidingWindow(resized, step_size = step, window_size = WINDOW_SIZE)
+            windows, boxes = slidingWindow(resized, step_size = step, window_size = WINDOW_SIZE)
             print("Window : ", windows.shape)
             features = np.empty((len(windows), 324))
             for (idx, i) in enumerate(windows):

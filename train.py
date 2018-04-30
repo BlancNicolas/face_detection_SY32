@@ -5,19 +5,13 @@ Created on Tue Apr 17 19:12:33 2018
 
 @author: Nico
 """
-from PIL import Image
-import os, glob, errno
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+import glob
 from sklearn.utils import shuffle
-from sklearn import cross_validation
 from sklearn import svm
 from skimage.feature import hog
 from skimage.color import rgb2gray
-from skimage.transform import resize
+from skimage.transform import resize, pyramid_gaussian
 from skimage import io
-from skimage import util
 from constants import *
 from util.utils import *
 from util.NMS import nonMaxSuppression
@@ -107,39 +101,51 @@ def rescaleBoxes(boxes_array, original_shape, current_shape):
 
 # OUTPUT : Linear SVC classifier
 #-----------------------------------------------
-def learningFromData(path_raw_data, labels, classifier):
-    train_dir_content = sorted(glob.glob(img_train_path))
-    for idx, path in enumerate(train_dir_content):
-        image = io.imread(path)
-        image = rgb2gray(image)
-        final_boxes = []
-        final_scores = []
-        scores = []
-        #Pyramid on current image
-        for (i, resized) in enumerate(transform.pyramid_gaussian(image, downscale = 1.3)):
-            boxes_list = []
-            if resized.shape[0] < 32 or resized.shape[1] < 32:
-                break
-            for (x, y, window) in slidingWindow(resized, step_size = 16, window_size = WINDOW_SIZE):
-                if window.shape[0] != WINDOW_SIZE[0] or window.shape[1] != WINDOW_SIZE[1]:
-                    continue
-                if classifier.predict([hog(window, cells_per_block = (1,1))]):
-                    boxes_list.append([x, y, x + WINDOW_SIZE[0], y + WINDOW_SIZE[1]])
-                    scores.append(classifier.decision_function(hog(window)))
-            nms_box = nonMaxSuppression(boxes_list, scores)
-            rescaled_nms_box = rescaleWindow(nms_box[:,0],
-                                             nms_box[:,1],
-                                             nms_box[:,2] - nms_box[:,0],
-                                             nms_box[:,3] - nms_box[:,1],
-                                             image.shape[0],
-                                             resized.shape[0])
-            final_boxes.append(rescaled_nms_box)
-            final_scores.append(classifier.decision_function(hog(rescaled_nms_box)))
-        final_box = nonMaxSuppression(final_boxes, final_scores)
-        displayRectOnImg(image, [final_box[0],
-                                 final_box[1],
-                                 final_box[2]-final_box[0],
-                                 final_box[3]-final_box[1]])
+def detectFaces(image, classifier):
+    candidate_boxes = np.empty((0,4))
+    candidate_scores = np.array([])
+    candidate_windows = np.empty((0, WINDOW_SIZE[0], WINDOW_SIZE[1]))
+    validated_boxes = []
+
+    # Pyramid on current image
+    for (i, resized) in enumerate(pyramid_gaussian(image, downscale = 1.5)):
+        if resized.shape[0] < WINDOW_SIZE[0] or resized.shape[1] < WINDOW_SIZE[1]:
+            break
+
+        # Create list of successive sliding windows with corresponding boxes.
+        windows, boxes = slidingWindow(resized, step_size = 16, window_size = WINDOW_SIZE)
+
+        # Compute hog for each sliding window
+        features = np.array([hog(windows[0])])
+        for w in windows[1:]:
+            features = np.concatenate((features, [hog(w)]), axis = 0)
+
+        # Compute scores based on given classifiers
+        scores = classifier.decision_function(features)
+
+        # Keep only boxes ith a detection probability above 50%
+        mask = np.zeros(features.shape[0], dtype = bool)
+        mask[scores > 0.5] = True
+        boxes = boxes[mask]
+        scores = scores[mask]
+        windows = windows[mask]
+
+        # Rescale boxes if image is resized
+        if i > 1:
+            rescaled_boxes = rescaleBoxes(boxes, image.shape, resized.shape)
+            candidate_boxes = np.concatenate((candidate_boxes, rescaled_boxes))
+        else:
+            candidate_boxes = np.concatenate((candidate_boxes, boxes))
+
+        candidate_scores = np.concatenate((candidate_scores, scores))
+        candidate_windows = np.concatenate((candidate_windows, windows))
+
+    # Delete overlapping boxes using non-maxima suppression
+    if len(candidate_scores) > 0:
+        validated_boxes = nonMaxSuppression(candidate_boxes, candidate_scores)
+
+    return validated_boxes, windows
+
 
 classifier = svm.LinearSVC()
 classifier = classifierTraining(extracted_pos_faces_path, extracted_neg_faces_path)
