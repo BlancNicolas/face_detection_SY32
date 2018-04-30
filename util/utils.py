@@ -37,6 +37,7 @@ def displayRectOnImg(image, rect_coord):
 def createLabels(len_yes, len_no):
     return np.concatenate((np.ones(len_yes), np.zeros(len_no)), axis = 0)
 
+
 def compareAreas(b1, b2):
 	# find the overlapping area of the two boxes
 	xx1 = np.maximum(b1[0], b2[0])
@@ -60,10 +61,12 @@ def compareAreas(b1, b2):
 #-----------------------------------------------
 # ---------- slidingWindow ------------------
 # INPUT :
-    # image : image we are sliding into
-    # step_size :
-
-# OUTPUT : Linear SVC classifier
+#   - image : image we are sliding into
+#   - step_size : shift of successive window slides
+#   - window_size : size of sliding window
+# OUTPUT :
+#   - windows : numpy arrays containing every sliding window of the image
+#   - boxes : numpy array of boxes corresponding to the successive windows
 #-----------------------------------------------
 def slidingWindow(image, step_size, window_size):
     # slide a window across the image
@@ -73,4 +76,4 @@ def slidingWindow(image, step_size, window_size):
         for x in range(step_size, (image.shape[1] - window_size[0]), step_size):
             boxes = np.concatenate((boxes, [(x, y, x + window_size[0], y + window_size[1])]))
             windows = np.concatenate((windows, [image[y:y+window_size[1], x:x+window_size[0]]]))
-    return boxes, windows
+    return windows, boxes

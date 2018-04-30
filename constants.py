@@ -25,5 +25,3 @@ MIN_HEIGHT = 30
 
 # Constants for data extraction
 NEGATIVE_SAMPLES_NUMBER = 1000
-
-
