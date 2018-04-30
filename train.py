@@ -46,13 +46,11 @@ def classifierTraining(pos_path, neg_path):
     train_dir_content = np.concatenate((pos_dir_content, neg_dir_content), axis=0)
     labels = createLabels(len(pos_dir_content), len(neg_dir_content))
     hog_train = []
-
     for idx, path in enumerate(train_dir_content):
         img = io.imread(path)
         img = rgb2gray(img)
         img = resize(img, (32, 32))
         hog_train.append(hog(img))
-
     hog_train, labels = shuffle(hog_train, labels)
     return clf.fit(hog_train, labels)
 
@@ -91,8 +89,8 @@ def rescaleBoxes(boxes_array, original_shape, current_shape):
     new_widths = current_widths * width_ratio
     new_heights = current_heights * height_ratio
     # Compute the offsets
-    width_offsets = int( 0.5 * (new_widths - current_widths) )
-    height_offsets = int( 0.5 * (new_heights - current_heights) )
+    width_offsets = (0.5 * (new_widths - current_widths)).astype('int')
+    height_offsets = (0.5 * (new_heights - current_heights)).astype('int')
     # Resize the boxes
     boxes_array[:, 0] = boxes_array[:, 0] - width_offsets
     boxes_array[:, 1] = boxes_array[:, 1] - height_offsets
@@ -125,7 +123,6 @@ def learningFromData(path_raw_data, labels, classifier):
             for (x, y, window) in slidingWindow(resized, step_size = 16, window_size = WINDOW_SIZE):
                 if window.shape[0] != WINDOW_SIZE[0] or window.shape[1] != WINDOW_SIZE[1]:
                     continue
-
                 if classifier.predict([hog(window, cells_per_block = (1,1))]):
                     boxes_list.append([x, y, x + WINDOW_SIZE[0], y + WINDOW_SIZE[1]])
                     scores.append(classifier.decision_function(hog(window)))
