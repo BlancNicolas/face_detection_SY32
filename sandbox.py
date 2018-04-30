@@ -47,8 +47,6 @@ def learningFromImage(path_raw_data, labels, classifier):
         for (i, resized) in enumerate(transform.pyramid_gaussian(image, downscale = 1.5)):
             if resized.shape[0] < 32 or resized.shape[1] < 32:
                 break
-            scores = np.empty((0,4))
-            boxes_list = np.empty((0,4))
             step = 16
             boxes, windows = slidingWindow(resized, step_size = step, window_size = WINDOW_SIZE)
             print("Window : ", windows.shape)
@@ -64,7 +62,7 @@ def learningFromImage(path_raw_data, labels, classifier):
             boxes = boxes[mask,:]
             scores = scores[mask]
 
-            rescaled_boxes = rescaleBoxes(boxes, image.shape[0], resized.shape[0])
+            rescaled_boxes = rescaleBoxes(boxes, image.shape, resized.shape)
 
             final_scores = np.concatenate((final_scores, scores))
             final_boxes = np.concatenate((final_boxes, rescaled_boxes))

@@ -28,6 +28,7 @@ c_param = 1.0
 img_train_dir_content = sorted(glob.glob(img_train_path))
 label = np.loadtxt(label_path)
 
+
 #-------------------------------------------------
 # ---------- classifierTraining ------------------
 # INPUT :
@@ -80,15 +81,23 @@ def rescaleWindow(x, y, window_height, window_width, original_shape, current_img
 
 
 def rescaleBoxes(boxes_array, original_shape, current_shape):
-    ratios = original_shape / current_shape
-    boxes_array[:, 0] = boxes_array[:, 0]/ratios
-    boxes_array[:, 1] = boxes_array[:, 1]/ratios
-    boxes_array[:, 2] = boxes_array[:, 2]/ratios
-    boxes_array[:, 3] = boxes_array[:, 3]/ratios
-
-    if boxes_array.dtype.kind == "i":
-        boxes_array = boxes_array.astype("int")
-
+    # Comoute the width and height ratios between the original shape and the shape of the resized image
+    width_ratio = original_shape[1] / current_shape[1]
+    height_ratio = original_shape[0] / current_shape[0]
+    # Compute width and height for each box
+    current_widths = boxes_array[:,2] - boxes_array[:,0] + 1
+    current_heights = boxes_array[:,3] - boxes_array[:,1] + 1
+    # compute new width and height
+    new_widths = current_widths * width_ratio
+    new_heights = current_heights * height_ratio
+    # Compute the offsets
+    width_offsets = int( 0.5 * (new_widths - current_widths) )
+    height_offsets = int( 0.5 * (new_heights - current_heights) )
+    # Resize the boxes
+    boxes_array[:, 0] = boxes_array[:, 0] - width_offsets
+    boxes_array[:, 1] = boxes_array[:, 1] - height_offsets
+    boxes_array[:, 2] = boxes_array[:, 2] + width_offsets
+    boxes_array[:, 3] = boxes_array[:, 3] + height_offsets
     return boxes_array
 
 
@@ -135,8 +144,8 @@ def learningFromData(path_raw_data, labels, classifier):
                                  final_box[2]-final_box[0],
                                  final_box[3]-final_box[1]])
 
-#classifier = svm.LinearSVC()
-#classifier = classifierTraining(extracted_pos_faces_path, extracted_neg_faces_path)
+classifier = svm.LinearSVC()
+classifier = classifierTraining(extracted_pos_faces_path, extracted_neg_faces_path)
 
 
 
