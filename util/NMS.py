@@ -30,6 +30,7 @@ def nonMaxSuppression(boxes, scores, overlap_thres=0.5):
 	# y1 = y coordinate of top-left corner
 	# x2 = x coordinate of bottom-right corner
 	# y2 = y coordinate of bottom-right corner
+
 	x1 = boxes[:, 0]
 	y1 = boxes[:, 1]
 	x2 = boxes[:, 2]
@@ -68,4 +69,4 @@ def nonMaxSuppression(boxes, scores, overlap_thres=0.5):
 
 	# return only the bounding boxes that were picked using the
 	# integer data type
-	return boxes[pick].astype("int")
+	return boxes[pick].astype("int"), scores[pick]

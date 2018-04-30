@@ -49,7 +49,7 @@ def classifierTraining(pos_path, neg_path):
     for idx, path in enumerate(train_dir_content):
         img = io.imread(path)
         img = rgb2gray(img)
-        img = resize(img, (64, 64))
+        img = resize(img, (32, 32))
         hog_train.append(hog(img))
 
     hog_train, labels = shuffle(hog_train, labels)
@@ -79,6 +79,20 @@ def rescaleWindow(x, y, window_height, window_width, original_shape, current_img
     return [rescaled_x, rescaled_y, rescaled_x + rescaled_width, rescaled_y + rescaled_height]
 
 
+def rescaleBoxes(boxes_array, original_shape, current_shape):
+    ratios = original_shape / current_shape
+    boxes_array[:, 0] = boxes_array[:, 0]/ratios
+    boxes_array[:, 1] = boxes_array[:, 1]/ratios
+    boxes_array[:, 2] = boxes_array[:, 2]/ratios
+    boxes_array[:, 3] = boxes_array[:, 3]/ratios
+
+    if boxes_array.dtype.kind == "i":
+        boxes_array = boxes_array.astype("int")
+
+    return boxes_array
+
+
+
 #-----------------------------------------------
 # ---------- learningFromData ------------------
 # INPUT :
@@ -95,7 +109,7 @@ def learningFromData(path_raw_data, labels, classifier):
         final_scores = []
         scores = []
         #Pyramid on current image
-        for (i, resized) in enumerate(transform.pyramid_gaussian(image, downscale = 2)):
+        for (i, resized) in enumerate(transform.pyramid_gaussian(image, downscale = 1.3)):
             boxes_list = []
             if resized.shape[0] < 32 or resized.shape[1] < 32:
                 break

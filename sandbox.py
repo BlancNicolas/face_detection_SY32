@@ -13,6 +13,9 @@ import numpy as np
 from skimage import io
 from skimage import transform
 from constants import *
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
 
 #image = io.imread(img_train_dir_content[0])
 #print("Shape 0 : ", image.shape[0])
@@ -22,46 +25,59 @@ from constants import *
 #for (i, resized) in enumerate(transform.pyramid_gaussian(image, downscale = 2)):
 #        if resized.shape[0] < 32 or resized.shape[1] < 32:
 #            break
+def displayRectOnImg(image, rect_coord):
+    # Create figure and axes
+    fig,ax = plt.subplots(1)
+    # Display the image
+    ax.imshow(image)
+    # Create a Rectangle patch
+    rect = patches.Rectangle((rect_coord[0], rect_coord[1]), rect_coord[2],rect_coord[3],linewidth=1,edgecolor='r',facecolor='none')
+    # Add the patch to the Axes
+    ax.add_patch(rect)
+    plt.show()
 
 def learningFromImage(path_raw_data, labels, classifier):
         print("-- Learning from image --")
         image = io.imread(path_raw_data)
         image = rgb2gray(image)
-        final_boxes = []
-        final_scores = []
-        scores = []
-        label = labels[124]
+        final_boxes = np.empty((0,4))
+        final_scores = np.array([])
+        label = labels[123]
         #Pyramid on current image
-        for (i, resized) in enumerate(transform.pyramid_gaussian(image, downscale = 1.2)):
-            print("Down sampling image")
-            boxes_list = []
+        for (i, resized) in enumerate(transform.pyramid_gaussian(image, downscale = 1.5)):
             if resized.shape[0] < 32 or resized.shape[1] < 32:
                 break
-            step = min(resized.shape[0], resized.shape[1])
-            for (x, y, window) in slidingWindow(resized, step_size = step, window_size = WINDOW_SIZE):
-                print("Sliding in window")
-                if window.shape[0] != WINDOW_SIZE[0] or window.shape[1] != WINDOW_SIZE[1]:
-                    continue
-                features = hog(window)
-                if classifier.predict([features]):
-                    print("Prediction is okay")
-                    boxes_list.append([x, y, x + WINDOW_SIZE[0], y + WINDOW_SIZE[1]])
-                    scores.append(classifier.decision_function(hog(window)))
-            nms_box = nonMaxSuppression(boxes_list, scores)
-            rescaled_nms_box = rescaleWindow(nms_box[:,0],
-                                             nms_box[:,1],
-                                             nms_box[:,2] - nms_box[:,0],
-                                             nms_box[:,3] - nms_box[:,1],
-                                             image.shape[0],
-                                             resized.shape[0])
-            final_boxes.append(rescaled_nms_box)
-            final_scores.append(classifier.decision_function(hog(rescaled_nms_box)))
-        final_box = nonMaxSuppression(final_boxes, final_scores)
-        displayRectOnImg(image, [label[0], label[1], label[2], label[3]])
-        displayRectOnImg(image, [final_box[0],
-                                 final_box[1],
-                                 final_box[2]-final_box[0],
-                                 final_box[3]-final_box[1]])
+            scores = np.empty((0,4))
+            boxes_list = np.empty((0,4))
+            step = 16
+            boxes, windows = slidingWindow(resized, step_size = step, window_size = WINDOW_SIZE)
+            print("Window : ", windows.shape)
+            features = np.empty((len(windows), 324))
+            for (idx, i) in enumerate(windows):
+                features[idx] = hog(i)
+            predictions = classifier.predict(features)
+            scores = classifier.decision_function(features)
+            mask = np.zeros(features.shape[0], dtype = bool)
+            mask[predictions == 1] = True
+
+            #Filtering
+            boxes = boxes[mask,:]
+            scores = scores[mask]
+
+            rescaled_boxes = rescaleBoxes(boxes, image.shape[0], resized.shape[0])
+
+            final_scores = np.concatenate((final_scores, scores))
+            final_boxes = np.concatenate((final_boxes, rescaled_boxes))
+
+        if len(final_scores)>0:
+            validated_boxes, scores = nonMaxSuppression(final_boxes, final_scores)
+
+        displayRectOnImg(image, label[1:])
+        for (idx, i) in enumerate(validated_boxes):
+            displayRectOnImg(image, [validated_boxes[idx, 0],
+                                     validated_boxes[idx, 1],
+                                     validated_boxes[idx, 2]-validated_boxes[idx, 0],
+                                     validated_boxes[idx, 3]-validated_boxes[idx, 1]])
 
 learningFromImage("/Users/Nico/DocumentsOnMac/UTC/P18/SY32/face_detection_SY32/projetface/train/0124.jpg",
                   label,

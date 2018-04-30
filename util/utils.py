@@ -4,6 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from PIL import Image
 
 #-------------------------------------------
 # ---------- displayRectOnImg ------------------
@@ -20,10 +21,9 @@ def displayRectOnImg(image, rect_coord):
     # Display the image
     ax.imshow(image)
     # Create a Rectangle patch
-    rect = patches.Rectangle((rect_coord[1], rect_coord[2]), rect_coord[3],rect_coord[4],linewidth=1,edgecolor='r',facecolor='none')
+    rect = patches.Rectangle((rect_coord[0], rect_coord[1]), rect_coord[2],rect_coord[3],linewidth=1,edgecolor='r',facecolor='none')
     # Add the patch to the Axes
     ax.add_patch(rect)
-
     plt.show()
 
 #-------------------------------------------
