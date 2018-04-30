@@ -56,3 +56,21 @@ def compareAreas(b1, b2):
 
 	return common_area / union_area
 
+
+#-----------------------------------------------
+# ---------- slidingWindow ------------------
+# INPUT :
+    # image : image we are sliding into
+    # step_size :
+
+# OUTPUT : Linear SVC classifier
+#-----------------------------------------------
+def slidingWindow(image, step_size, window_size):
+    # slide a window across the image
+    boxes = np.array([(0, 0, window_size[0], window_size[1])])
+    windows = np.array([image[0:window_size[1], 0:window_size[0]]])
+    for y in range(step_size, (image.shape[0] - window_size[1]), step_size):
+        for x in range(step_size, (image.shape[1] - window_size[0]), step_size):
+            boxes = np.concatenate((boxes, [(x, y, x + window_size[0], y + window_size[1])]))
+            windows = np.concatenate((windows, [image[y:y+window_size[1], x:x+window_size[0]]]))
+    return boxes, windows

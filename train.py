@@ -55,21 +55,6 @@ def classifierTraining(pos_path, neg_path):
     hog_train, labels = shuffle(hog_train, labels)
     return clf.fit(hog_train, labels)
 
-#-----------------------------------------------
-# ---------- slidingWindow ------------------
-# INPUT :
-    # image : image we are sliding into
-    # step_size :
-
-# OUTPUT : Linear SVC classifier
-#-----------------------------------------------
-def slidingWindow(image, step_size, window_size):
-	# slide a window across the image
-	for y in range(0, image.shape[0], step_size):
-		for x in range(0, image.shape[1], step_size):
-			# yield the current window
-			yield (x, y, image[y:y + window_size[1], x:x + window_size[0]])
-
 
 #-----------------------------------------------
 # ---------- rescaleWindow ---------------------
