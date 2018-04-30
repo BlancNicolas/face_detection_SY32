@@ -50,51 +50,6 @@ def classifierTraining(pos_path, neg_path):
 
 
 #-----------------------------------------------
-# ---------- rescaleWindow ---------------------
-# Goal : after NMS we have a window which is possibly defined in a different scale from original scale.
-# INPUT :
-    # x : x coord of window we want to rescale
-    # y : y coord of window we want to rescale
-    # window_height : height of window we want to rescale
-    # window_width : width of window we want to rescale
-    # original_shape : shape of original image
-    # current_img_shape : shape of current image which is resized
-
-
-# OUTPUT : Linear SVC classifier
-#-----------------------------------------------
-def rescaleWindow(x, y, window_height, window_width, original_shape, current_img_shape):
-    ratio = current_img_shape / original_shape
-    rescaled_x = int( x / ratio )
-    rescaled_y = int( y / ratio )
-    rescaled_height = int ( window_height / ratio )
-    rescaled_width = int ( window_width / ratio )
-    return [rescaled_x, rescaled_y, rescaled_x + rescaled_width, rescaled_y + rescaled_height]
-
-
-def rescaleBoxes(boxes_array, original_shape, current_shape):
-    # Comoute the width and height ratios between the original shape and the shape of the resized image
-    width_ratio = original_shape[1] / current_shape[1]
-    height_ratio = original_shape[0] / current_shape[0]
-    # Compute width and height for each box
-    current_widths = boxes_array[:,2] - boxes_array[:,0] + 1
-    current_heights = boxes_array[:,3] - boxes_array[:,1] + 1
-    # compute new width and height
-    new_widths = current_widths * width_ratio
-    new_heights = current_heights * height_ratio
-    # Compute the offsets
-    width_offsets = (0.5 * (new_widths - current_widths)).astype('int')
-    height_offsets = (0.5 * (new_heights - current_heights)).astype('int')
-    # Resize the boxes
-    boxes_array[:, 0] = boxes_array[:, 0] - width_offsets
-    boxes_array[:, 1] = boxes_array[:, 1] - height_offsets
-    boxes_array[:, 2] = boxes_array[:, 2] + width_offsets
-    boxes_array[:, 3] = boxes_array[:, 3] + height_offsets
-    return boxes_array
-
-
-
-#-----------------------------------------------
 # ---------- learningFromData ------------------
 # INPUT :
     # path_raw_data : path where raw train data are stored

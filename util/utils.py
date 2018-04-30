@@ -77,3 +77,34 @@ def slidingWindow(image, step_size, window_size):
             boxes = np.concatenate((boxes, [(x, y, x + window_size[0], y + window_size[1])]))
             windows = np.concatenate((windows, [image[y:y+window_size[1], x:x+window_size[0]]]))
     return windows, boxes
+
+
+#-----------------------------------------------
+# ---------- rescaleWindow ---------------------
+# Goal : after NMS we have a window which is possibly defined in a different scale from original scale.
+# INPUT :
+#   - boxes_array : numpy array containing the boxes to rescale
+#   - original_shape : shape of original image
+#   - current_shape : shape of current image which is resized
+#
+# OUTPUT : Linear SVC classifier
+#-----------------------------------------------
+def rescaleBoxes(boxes_array, original_shape, current_shape):
+    # Comoute the width and height ratios between the original shape and the shape of the resized image
+    width_ratio = original_shape[1] / current_shape[1]
+    height_ratio = original_shape[0] / current_shape[0]
+    # Compute width and height for each box
+    current_widths = boxes_array[:,2] - boxes_array[:,0] + 1
+    current_heights = boxes_array[:,3] - boxes_array[:,1] + 1
+    # compute new width and height
+    new_widths = current_widths * width_ratio
+    new_heights = current_heights * height_ratio
+    # Compute the offsets
+    width_offsets = (0.5 * (new_widths - current_widths)).astype('int')
+    height_offsets = (0.5 * (new_heights - current_heights)).astype('int')
+    # Resize the boxes
+    boxes_array[:, 0] = boxes_array[:, 0] - width_offsets
+    boxes_array[:, 1] = boxes_array[:, 1] - height_offsets
+    boxes_array[:, 2] = boxes_array[:, 2] + width_offsets
+    boxes_array[:, 3] = boxes_array[:, 3] + height_offsets
+    return boxes_array
