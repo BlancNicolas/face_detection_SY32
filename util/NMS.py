@@ -17,6 +17,8 @@ def nonMaxSuppression(boxes, scores, overlap_thres=0.5):
 	# if there are no boxes, return an empty list
 	if len(boxes) == 0:
 		return []
+	elif len(boxes) == 1:
+		return boxes
 
 	# if the boxes contain integers, convert them to floats for divisions.
 	if boxes.dtype.kind == "i":
@@ -69,4 +71,4 @@ def nonMaxSuppression(boxes, scores, overlap_thres=0.5):
 
 	# return only the bounding boxes that were picked using the
 	# integer data type
-	return boxes[pick].astype("int"), scores[pick]
+	return boxes[pick].astype("int")
