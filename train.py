@@ -50,16 +50,24 @@ def classifierTraining(pos_path, neg_path):
 
 
 #-----------------------------------------------
-# ---------- learningFromData ------------------
+# ---------- detectFaces ------------------
+# Goal : This functions aims at detecting faces the input image.
+# This works in several steps as follow :
+#   1. Compute the gaussian pyramid of the image to make the detection on several sizes
+#   2. For each pyramid level : compute sliding windows and retrieve candidate boxes the classifier detects
+#   3. Rescale candidate boxes to fit on the original image shape
+#   4. Eliminate overlapping candidate boxes using non-maxima suppression
+#   5. Return remaining boxes as validated boxes
 # INPUT :
-    # path_raw_data : path where raw train data are stored
-
-# OUTPUT : Linear SVC classifier
+#   - image : image to detect face on
+#   - classifier : trained classifier
+#
+# OUTPUT :
+#   - validated_boxes : Boxes corresponding to detected faces on the input image
 #-----------------------------------------------
 def detectFaces(image, classifier):
     candidate_boxes = np.empty((0,4))
     candidate_scores = np.array([])
-    candidate_windows = np.empty((0, WINDOW_SIZE[0], WINDOW_SIZE[1]))
     validated_boxes = []
 
     # Pyramid on current image
@@ -83,7 +91,6 @@ def detectFaces(image, classifier):
         mask[scores > 0.5] = True
         boxes = boxes[mask]
         scores = scores[mask]
-        windows = windows[mask]
 
         # Rescale boxes if image is resized
         if i > 1:
@@ -93,13 +100,12 @@ def detectFaces(image, classifier):
             candidate_boxes = np.concatenate((candidate_boxes, boxes))
 
         candidate_scores = np.concatenate((candidate_scores, scores))
-        candidate_windows = np.concatenate((candidate_windows, windows))
 
     # Delete overlapping boxes using non-maxima suppression
     if len(candidate_scores) > 0:
         validated_boxes = nonMaxSuppression(candidate_boxes, candidate_scores)
 
-    return validated_boxes, windows
+    return validated_boxes
 
 
 classifier = svm.LinearSVC()
