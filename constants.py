@@ -16,7 +16,7 @@ pos_faces = "/pos/*.jpg"
 neg_faces = "/neg/*.jpg"
 extracted_pos_faces_path = root_path + extracted_faces_path + pos_faces
 extracted_neg_faces_path = root_path + extracted_faces_path + neg_faces
-
+fp_path = root_path + extracted_faces_path + "/falsePos/"
 # Constant for the size of sliding window
 WINDOW_SIZE = [32, 32]
 MAX_WIDTH = 300

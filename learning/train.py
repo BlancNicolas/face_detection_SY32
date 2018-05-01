@@ -10,7 +10,7 @@ from sklearn.utils import shuffle
 from sklearn import svm
 from skimage.feature import hog
 from skimage.transform import resize
-from util.data_extraction import *
+from util.dataExtraction import *
 from learning.test import validateFaceDetection
 
 
@@ -22,10 +22,12 @@ from learning.test import validateFaceDetection
 
 # OUTPUT : Linear SVC classifier
 #-------------------------------------------------
-def classifierTraining(images, labels, c_param = 1.0):
+def classifierTraining(pos, neg, c_param = 1.0):
     print(" -- Training a classifier SVC Linear --")
     # Initializing classifier
     clf = svm.LinearSVC(C = c_param)
+    images = np.concatenate((pos, neg))
+    labels = createLabels(len(pos), len(neg))
     hog_train = []
     for img in images:
         img = resize(img, (32, 32))
@@ -59,35 +61,56 @@ def crossValidTraining(x, y, k):
 
 
 #-----------------------------------------------
-# ---------- importImages ------------------
-# Goal : This functions aims at importing all images of a directory as a list.
+# ---------- trainAndValidate ------------------
+# Goal : This functions trains a classifier and validate the model
+# using hard negative mining and cross validation.
+# This works in several steps as follow :
+#   1. Train the classifier a first time using given pos and neg images
+#   2. Retrieve error ratio and false positive, add them into the folder "falsePos"
+#   3. Do the hard negative mining, which is repeating step 1 and 2 until the convergence is reached
+#   4. Convergence is reached when the difference of error rate between two iterations is lower than input threshold.
 # INPUT :
-#   - dir_path : directory of images, of the form "path/to/dir/*.jpg"
-#
+#   - images :set of images to test the trained classifier
+#   - labels : labels of the set of images
+#   - pos : set of positive faces images to train the classifier
+#   - neg : set of negatives faces images to train the classifier
+#   - convThresh : threshold expressed in % to know when to stop hard negative mining
 # OUTPUT :
-#   - validated_boxes : Boxes corresponding to detected faces on the input image
+#   - clf : trained classifier
 #-----------------------------------------------
-def train():
-    # import images
-    train_images = importImages(img_train_path)
-    train_labels = np.loadtxt(label_path).astype('int')
-    pos_faces = importImages(extracted_pos_faces_path)
-    neg_faces = importImages(extracted_neg_faces_path)
-
+def trainAndValidate(images, labels, pos, neg, convThresh):
     # train classifier
-    train_faces = np.concatenate((pos_faces, neg_faces))
-    face_labels = createLabels(len(pos_faces), len(neg_faces))
-    clf = classifierTraining(train_faces, face_labels)
+    clf = classifierTraining(pos, neg)
 
     # apply classifier on train_images and retrieve false positives
-    err_rate, new_neg_faces = validateFaceDetection(train_images, train_labels, clf)
+    err_rate, false_pos = validateFaceDetection(images, labels, clf)
     print("Info : {}% error after first training".format(err_rate))
+    print("Info : Number of False postive after first training : {}".format(len(false_pos)))
 
-    # train classifier with new negative faces
-    train_faces = np.concatenate((train_faces, new_neg_faces))
-    face_labels += createLabels(0, len(new_neg_faces))
-    clf = classifierTraining(train_faces, face_labels)
+    # i will serve to know the current iteration and to distinguish false positives names of different iterations
+    i = 1
+
+    # Store false positives in the directory falsePos
+    storeImages(false_pos, fp_path + str(i))
+
+    # Hard negative mining
+    prev_err_rate = err_rate
+    converged = False
+    while not converged:
+        i += 1
+        # train classifier again with new negative faces
+        neg += false_pos
+        clf = classifierTraining(pos, neg)
+        err_rate, false_pos = validateFaceDetection(images, labels, clf)
+        print("Info : {}% error after {}e training".format(err_rate, i))
+        print("Info : Number of False postive after {}e training : {}".format(i, len(false_pos)))
+        # Store false positives in the directory falsePos
+        storeImages(false_pos, fp_path + str(i))
+
+        # Check the convergence
+        converged = abs(err_rate - prev_err_rate) < convThresh
+        prev_err_rate = err_rate
 
     # TODO : adjust parameters using cross validation
 
-    return clf
+    return clf, err_rate
