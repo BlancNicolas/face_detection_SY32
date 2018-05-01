@@ -6,15 +6,33 @@ Created on Tue Apr 17 19:12:33 2018
 @author: Nico
 """
 
-from PIL import Image
-import os, glob, errno
-import numpy as np
+import glob, errno
+from skimage.color import rgb2gray
 from skimage import io
-from skimage import util
-from constants import *
-from train import *
 from util.utils import *
+from constants import *
 from random import randint
+from PIL import Image
+
+img_train_dir_content = sorted(glob.glob(img_train_path))
+
+
+#-----------------------------------------------
+# ---------- importImages ------------------
+# Goal : This functions aims at importing all images of a directory as a list.
+# INPUT :
+#   - dir_path : directory of images, of the form "path/to/dir/*.jpg"
+#
+# OUTPUT :
+#   - images : list of imported images
+#-----------------------------------------------
+def importImages(dir_path):
+    images = []
+    for fimage in glob.glob(dir_path):
+        img = io.imread(fimage)
+        img = rgb2gray(img)
+        images.append(img)
+    return images
 
 
 #-----------------------------------------------

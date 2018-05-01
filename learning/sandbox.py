@@ -5,10 +5,9 @@ Created on Tue Apr 24 12:19:10 2018
 
 @author: Nico
 """
-from train import *
-from utils import *
-from PIL import Image
-import os, glob, errno
+from learning.train import *
+from util.utils import *
+from util.NMS import *
 import numpy as np
 from skimage import io
 from skimage import transform

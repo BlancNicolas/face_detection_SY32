@@ -16,7 +16,7 @@ def test_with_1_detected_face():
 	assert (picked == boxes[1]).all()
 
 
-# test with 2 detected face, two boxes overlapping on the first one and the second box face overlapping
+# tests with 2 detected face, two boxes overlapping on the first one and the second box face overlapping
 # slightly on the first.
 def test_with_2_detected_face():
 	box1 = np.array([13, 12, 17, 16])

@@ -1,11 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from util.utils import *
-import numpy as np
-from PIL import Image
-from constants import *
-from train import *
+from learning.train import *
 
 
 def test_compare_area_same_box():
