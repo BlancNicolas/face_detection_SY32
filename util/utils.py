@@ -85,6 +85,34 @@ def slidingWindow(image, step_size, window_size):
 	return windows, boxes
 
 
+def checkBoxShape(boxes_array, img_shape):
+	# Retrieve indexes of boxes which coordinates are out of the img
+	to_shift_right = boxes_array[:, 0] < 0
+	to_shift_left = boxes_array[:, 0] > img_shape[1]
+	to_shift_bottom = boxes_array[:, 1] < 0
+	to_shift_top = boxes_array[:, 3] > img_shape[0]
+	
+	if to_shift_right.any():
+		boxes_array[to_shift_right, 2] += boxes_array[to_shift_right, 0]
+		boxes_array[to_shift_right, 0] = 0
+		
+	if to_shift_left.any():
+		excess = boxes_array[to_shift_left, 2] - img_shape[1]
+		boxes_array[to_shift_left, 0] -= excess
+		boxes_array[to_shift_left, 2] = img_shape[1]
+		
+	if to_shift_bottom.any():
+		boxes_array[to_shift_bottom, 3] += boxes_array[to_shift_bottom, 1]
+		boxes_array[to_shift_bottom, 1] = 0
+		
+	if to_shift_top.any():
+		excess = boxes_array[to_shift_top, 3] - img_shape[0]
+		boxes_array[to_shift_top, 1] -= excess
+		boxes_array[to_shift_top, 3] = img_shape[0]
+
+	return boxes_array
+
+
 #-----------------------------------------------
 # ---------- rescaleWindow ---------------------
 # Goal : after NMS we have a window which is possibly defined in a different scale from original scale.
@@ -100,8 +128,8 @@ def rescaleBoxes(boxes_array, original_shape, current_shape):
 	width_ratio = original_shape[1] / current_shape[1]
 	height_ratio = original_shape[0] / current_shape[0]
 	# Compute width and height for each box
-	current_widths = boxes_array[:,2] - boxes_array[:,0] + 1
-	current_heights = boxes_array[:,3] - boxes_array[:,1] + 1
+	current_widths = boxes_array[:, 2] - boxes_array[:, 0] + 1
+	current_heights = boxes_array[:, 3] - boxes_array[:, 1] + 1
 	# compute new width and height
 	new_widths = current_widths * width_ratio
 	new_heights = current_heights * height_ratio
@@ -113,4 +141,7 @@ def rescaleBoxes(boxes_array, original_shape, current_shape):
 	boxes_array[:, 1] = boxes_array[:, 1] - height_offsets
 	boxes_array[:, 2] = boxes_array[:, 2] + width_offsets
 	boxes_array[:, 3] = boxes_array[:, 3] + height_offsets
+
+	boxes_array = checkBoxShape(boxes_array, original_shape)
+
 	return boxes_array
