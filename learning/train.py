@@ -12,7 +12,6 @@ from skimage.feature import hog
 from skimage.transform import resize
 from util.data_extraction import *
 from learning.test import validateFaceDetection
-label = np.loadtxt(label_path)
 
 
 #-------------------------------------------------
@@ -71,7 +70,7 @@ def crossValidTraining(x, y, k):
 def train():
     # import images
     train_images = importImages(img_train_path)
-    train_labels = np.loadtxt(label_path)
+    train_labels = np.loadtxt(label_path).astype('int')
     pos_faces = importImages(extracted_pos_faces_path)
     neg_faces = importImages(extracted_neg_faces_path)
 
@@ -91,9 +90,4 @@ def train():
 
     # TODO : adjust parameters using cross validation
 
-
-classifier = svm.LinearSVC()
-classifier = classifierTraining(extracted_pos_faces_path, extracted_neg_faces_path)
-
-
-
+    return clf

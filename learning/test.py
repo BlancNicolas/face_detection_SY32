@@ -33,8 +33,8 @@ from util.NMS import *
 def detectFaces(image, classifier, threshold = 0.5):
     candidate_boxes = np.empty((0,4))
     candidate_scores = np.array([])
-    validated_boxes = []
-    validated_scores = []
+    validated_boxes = np.empty((0,4))
+    validated_scores = np.empty(0)
 
     # Pyramid on current image
     for (i, resized) in enumerate(pyramid_gaussian(image, downscale = 1.5)):
@@ -46,8 +46,9 @@ def detectFaces(image, classifier, threshold = 0.5):
 
         # Compute hog for each sliding window
         features = np.array([hog(windows[0])])
-        for w in windows[1:]:
-            features = np.concatenate((features, [hog(w)]), axis = 0)
+        if len(windows) > 1:
+            for w in windows[1:]:
+                features = np.concatenate((features, [hog(w)]), axis = 0)
 
         # Compute scores based on given classifiers
         scores = classifier.decision_function(features)
@@ -67,10 +68,19 @@ def detectFaces(image, classifier, threshold = 0.5):
 
         candidate_scores = np.concatenate((candidate_scores, scores))
 
-    # Delete overlapping boxes using non-maxima suppression
-    if len(candidate_scores) > 0:
-        validated_boxes, validated_scores = nonMaxSuppression(candidate_boxes, candidate_scores)
+    print("Candidate boxes : {}".format(candidate_boxes.shape))
+    print("Candidate scores : {}".format(candidate_scores.shape))
 
+    # Delete overlapping boxes using non-maxima suppression
+    if len(candidate_boxes) == 1:
+        return candidate_boxes.astype('int'), candidate_scores.astype('float')
+    elif len(candidate_scores) > 1:
+        pick = nonMaxSuppression(candidate_boxes, candidate_scores)
+        validated_boxes = candidate_boxes[pick].astype('int')
+        validated_scores = candidate_scores[pick].astype('float')
+
+    print("Validated boxes : {}".format(validated_boxes.shape))
+    print("Validated scores : {}".format(validated_scores.shape))
     return validated_boxes, validated_scores
 
 
@@ -93,9 +103,10 @@ def validateFaceDetection(images, labels, clf):
         label = labels[idx, 1:]
         label_box = [label[0], label[1], label[0] + label[2], label[1] + label[3]]
         for box in boxes:
+            print("Box = {}".format(box))
             overlap = compareAreas(box, label_box)
             if overlap < 0.5:
-                false_pos.append(img[box[0]:box[2], box[1]:box[3]])
+                false_pos.append(img[box[1]:box[3], box[0]:box[2]])
         if len(false_pos) == len(boxes):
             err += 1
     err_rate = err * 100 / len(images)

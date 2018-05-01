@@ -6,12 +6,12 @@ Created on Mon Apr 23 15:20:48 2018
 @author: Nico
 """
 import os
-
 # Constants for paths
 root_path = os.path.dirname(os.path.abspath(__file__))
-img_train_path = root_path + "data/projetface/train/*.jpg"
-label_path = root_path + "data/projetface/label.txt"
-extracted_faces_path = "data/extractedFaces"
+img_train_path = root_path + "/data/projetface/train/*.jpg"
+label_path = root_path + "/data/projetface/label.txt"
+
+extracted_faces_path = "/data/extractedFaces"
 pos_faces = "/pos/*.jpg"
 neg_faces = "/neg/*.jpg"
 extracted_pos_faces_path = root_path + extracted_faces_path + pos_faces

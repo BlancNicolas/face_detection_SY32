@@ -35,6 +35,7 @@ def displayRectOnImg(image, rect_coord):
     ax.add_patch(rect)
     plt.show()
 
+
 def learningFromImage(path_raw_data, labels, classifier):
         print("-- Learning from image --")
         image = io.imread(path_raw_data)
