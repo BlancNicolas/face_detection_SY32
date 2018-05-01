@@ -35,6 +35,14 @@ def importImages(dir_path):
     return images
 
 
+def storeImages(images, path):
+    i = 1
+    for img in images:
+        name = "000{}.jpg".format(i)
+        io.imsave(path + name, img)
+        i += 1
+
+
 #-----------------------------------------------
 # ---------- extractPosFaces  ------------------
 # GOAL : extract positive faces from train images thanks to labels
@@ -110,7 +118,6 @@ def generateNegativeSamples(path, label):
             # Save image
             neg_face.save(path)
             idx = idx + 1
-
 
 #generateNegativeSamples(img_train_dir_content, label)
 
