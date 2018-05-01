@@ -25,13 +25,12 @@ from util.NMS import *
 # INPUT :
 #   - image : image to detect face on
 #   - classifier : trained classifier
+#   - threshold : minimum score to for a window to be detected as a face
 #
 # OUTPUT :
 #   - validated_boxes : Boxes corresponding to detected faces on the input image
 #-----------------------------------------------
-# TODO : Add overlap threshold as parameters. It might be something to tune in order to get better results.
-# TODO : Indeed increasing the threshold will reduce the amount of false postive which I think are taken into account in the notation.
-def detectFaces(image, classifier):
+def detectFaces(image, classifier, threshold = 0.5):
     candidate_boxes = np.empty((0,4))
     candidate_scores = np.array([])
     validated_boxes = []
@@ -55,7 +54,7 @@ def detectFaces(image, classifier):
 
         # Keep only boxes ith a detection probability above 50%
         mask = np.zeros(features.shape[0], dtype = bool)
-        mask[scores > 0.5] = True
+        mask[scores > threshold] = True
         boxes = boxes[mask]
         scores = scores[mask]
 
