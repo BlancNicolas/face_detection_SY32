@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from learning.train import *
-
+from util.utils import *
+from constants import img_train_path
+from skimage import io
 
 def test_compare_area_same_box():
 	b1 = [2, 2, 5, 5]
@@ -22,8 +23,8 @@ def test_compare_area_overlapping():
 
 
 def test_sliding_window():
-	image = io.imread(img_train_dir_content[0])
-	boxes, windows = slidingWindow(image, 16, 32)
+	image = io.imread(img_train_path.replace('*', '0001'))
+	boxes, windows = slidingWindow(image, 16, (32,32))
 	assert boxes.shape[0] == 625
 
 

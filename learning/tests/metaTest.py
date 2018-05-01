@@ -3,7 +3,7 @@
 
 from learning.train import *
 from learning.test import *
-from util.data_extraction import importImages
+from util.dataExtraction import importImages
 
 sample_size = 200
 pos_faces = importImages(extracted_pos_faces_path)[0:sample_size]
