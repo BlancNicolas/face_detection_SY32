@@ -69,8 +69,5 @@ def nonMaxSuppression(boxes, scores, overlap_thres=0.5):
 		# a sufficient overlapping with the current box
 		idxs = np.delete(idxs, np.concatenate(([last], np.where(overlap > overlap_thres)[0])))
 
-	# return only the bounding boxes that were picked using the
-	# integer data type
-	print("Scores : {}".format(pick))
-	print("Picked boxes : {}".format(pick))
+	# return picked indexes
 	return pick

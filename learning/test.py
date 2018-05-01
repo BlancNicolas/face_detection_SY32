@@ -68,9 +68,6 @@ def detectFaces(image, classifier, threshold = 0.5):
 
         candidate_scores = np.concatenate((candidate_scores, scores))
 
-    print("Candidate boxes : {}".format(candidate_boxes.shape))
-    print("Candidate scores : {}".format(candidate_scores.shape))
-
     # Delete overlapping boxes using non-maxima suppression
     if len(candidate_boxes) == 1:
         return candidate_boxes.astype('int'), candidate_scores.astype('float')
@@ -79,8 +76,6 @@ def detectFaces(image, classifier, threshold = 0.5):
         validated_boxes = candidate_boxes[pick].astype('int')
         validated_scores = candidate_scores[pick].astype('float')
 
-    print("Validated boxes : {}".format(validated_boxes.shape))
-    print("Validated scores : {}".format(validated_scores.shape))
     return validated_boxes, validated_scores
 
 
@@ -103,7 +98,6 @@ def validateFaceDetection(images, labels, clf):
         label = labels[idx, 1:]
         label_box = [label[0], label[1], label[0] + label[2], label[1] + label[3]]
         for box in boxes:
-            print("Box = {}".format(box))
             overlap = compareAreas(box, label_box)
             if overlap < 0.5:
                 false_pos.append(img[box[1]:box[3], box[0]:box[2]])
