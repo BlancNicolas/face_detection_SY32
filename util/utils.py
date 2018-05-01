@@ -4,7 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from PIL import Image
+
 
 #-------------------------------------------
 # ---------- displayRectOnImg ------------------
@@ -25,6 +25,7 @@ def displayRectOnImg(image, rect_coord):
     # Add the patch to the Axes
     ax.add_patch(rect)
     plt.show()
+
 
 #-------------------------------------------
 # ---------- createLabels ------------------

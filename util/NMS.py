@@ -71,4 +71,4 @@ def nonMaxSuppression(boxes, scores, overlap_thres=0.5):
 
 	# return only the bounding boxes that were picked using the
 	# integer data type
-	return boxes[pick].astype("int")
+	return boxes[pick].astype("int"), scores[pick]

@@ -1,52 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Apr 17 19:12:33 2018
+Created on Tue Apr 17 18:31:30 2018
 
 @author: Nico
 """
-import glob
-from sklearn.utils import shuffle
-from sklearn import svm
+
 from skimage.feature import hog
-from skimage.color import rgb2gray
-from skimage.transform import resize, pyramid_gaussian
-from skimage import io
+from skimage.transform import pyramid_gaussian
 from constants import *
 from util.utils import *
-from util.NMS import nonMaxSuppression
-
-#Classifier arguments
-c_param = 1.0
-
-img_train_dir_content = sorted(glob.glob(img_train_path))
-label = np.loadtxt(label_path)
-
-
-#-------------------------------------------------
-# ---------- classifierTraining ------------------
-# INPUT :
-    # neg_path : path where negative samples are stored
-    # pos_path : path where positive samples are stored
-
-# OUTPUT : Linear SVC classifier
-#-------------------------------------------------
-def classifierTraining(pos_path, neg_path):
-    print(" -- Training a classifier SVC Linear --")
-    # Initializing classifier
-    clf = svm.LinearSVC(C = c_param)
-    pos_dir_content = sorted(glob.glob(pos_path))
-    neg_dir_content = sorted(glob.glob(neg_path))
-    train_dir_content = np.concatenate((pos_dir_content, neg_dir_content), axis=0)
-    labels = createLabels(len(pos_dir_content), len(neg_dir_content))
-    hog_train = []
-    for idx, path in enumerate(train_dir_content):
-        img = io.imread(path)
-        img = rgb2gray(img)
-        img = resize(img, (32, 32))
-        hog_train.append(hog(img))
-    hog_train, labels = shuffle(hog_train, labels)
-    return clf.fit(hog_train, labels)
+from util.NMS import *
 
 
 #-----------------------------------------------
@@ -65,10 +29,13 @@ def classifierTraining(pos_path, neg_path):
 # OUTPUT :
 #   - validated_boxes : Boxes corresponding to detected faces on the input image
 #-----------------------------------------------
+# TODO : Add overlap threshold as parameters. It might be something to tune in order to get better results.
+# TODO : Indeed increasing the threshold will reduce the amount of false postive which I think are taken into account in the notation.
 def detectFaces(image, classifier):
     candidate_boxes = np.empty((0,4))
     candidate_scores = np.array([])
     validated_boxes = []
+    validated_scores = []
 
     # Pyramid on current image
     for (i, resized) in enumerate(pyramid_gaussian(image, downscale = 1.5)):
@@ -103,13 +70,34 @@ def detectFaces(image, classifier):
 
     # Delete overlapping boxes using non-maxima suppression
     if len(candidate_scores) > 0:
-        validated_boxes = nonMaxSuppression(candidate_boxes, candidate_scores)
+        validated_boxes, validated_scores = nonMaxSuppression(candidate_boxes, candidate_scores)
 
-    return validated_boxes
-
-
-classifier = svm.LinearSVC()
-classifier = classifierTraining(extracted_pos_faces_path, extracted_neg_faces_path)
+    return validated_boxes, validated_scores
 
 
-
+#-----------------------------------------------
+# ---------- validateTraining ------------------
+# Goal : This functions retrieves the false positives in detected faces
+# INPUT :
+#   - img : image on which the face detection has been done
+#   - boxes : boxes containing the detected face (format X1 Y1 X2 Y2)
+#   - label : label of training image of the form (format X Y L H)
+#
+# OUTPUT :
+#   - false_pos : Boxes corresponding to false postives among input boxes
+#-----------------------------------------------
+def validateFaceDetection(images, labels, clf):
+    false_pos = []
+    err = 0
+    for (idx, img) in enumerate(images):
+        boxes, scores = detectFaces(img, clf)
+        label = labels[idx, 1:]
+        label_box = [label[0], label[1], label[0] + label[2], label[1] + label[3]]
+        for box in boxes:
+            overlap = compareAreas(box, label_box)
+            if overlap < 0.5:
+                false_pos.append(img[box[0]:box[2], box[1]:box[3]])
+        if len(false_pos) == len(boxes):
+            err += 1
+    err_rate = err * 100 / len(images)
+    return err_rate, false_pos
