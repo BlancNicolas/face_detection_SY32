@@ -6,8 +6,7 @@ Created on Tue Apr 17 18:31:30 2018
 @author: Nico
 """
 
-from skimage.feature import hog
-from skimage.transform import pyramid_gaussian
+from learning.train import *
 from constants import *
 from util.utils import *
 from util.dataExtraction import importImages
@@ -124,3 +123,16 @@ def applyClfOnTestImages(test_images, clf, scoreThresh):
             res = np.concatenate((res, labels), axis=0)
 
     np.savetxt(result_path, res, fmt=('%.4d', '%d', '%d', '%d', '%d', '%.2f'))
+
+
+def trainTestAndStore():
+    images = importImages(img_train_path)
+    labels = np.loadtxt(label_path).astype('int')
+    pos = importImages(extracted_pos_faces_path)
+    neg = importImages(extracted_neg_faces_path)
+
+    clf, err_rate = trainAndValidate(images, labels, pos, neg, 5, iter_max=3)
+
+    test_images = importImages(img_train_path)
+    applyClfOnTestImages(test_images, clf, 0.6)
+

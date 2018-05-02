@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from learning.train import *
 from learning.test import *
 from util.dataExtraction import importImages
 
