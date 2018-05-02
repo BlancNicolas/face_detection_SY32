@@ -78,7 +78,7 @@ def crossValidTraining(x, y, k):
 # OUTPUT :
 #   - clf : trained classifier
 #-----------------------------------------------
-def trainAndValidate(images, labels, pos, neg, convThresh):
+def trainAndValidate(images, labels, pos, neg, convThresh, iter_max):
     # train classifier
     clf = classifierTraining(pos, neg)
 
@@ -96,8 +96,10 @@ def trainAndValidate(images, labels, pos, neg, convThresh):
     # Hard negative mining
     prev_err_rate = err_rate
     converged = False
-    while not converged:
+    niter = 0
+    while not converged or niter < iter_max:
         i += 1
+        niter += 1
         # train classifier again with new negative faces
         neg += false_pos
         clf = classifierTraining(pos, neg)
