@@ -6,12 +6,10 @@ from learning.test import *
 from util.dataExtraction import importImages
 
 sample_size = 200
-pos_faces = importImages(extracted_pos_faces_path)[0:sample_size]
-neg_faces = importImages(extracted_neg_faces_path)[0:sample_size]
-faces = np.concatenate((pos_faces, neg_faces))
-face_labels = createLabels(sample_size, sample_size)
+pos = importImages(extracted_pos_faces_path)[0:sample_size]
+neg = importImages(extracted_neg_faces_path)[0:sample_size]
 
-clf = classifierTraining(faces, face_labels)
+clf = classifierTraining(pos, neg)
 
 
 def test_detectFaces():
@@ -32,3 +30,9 @@ def test_validation():
 	print("# False Positive : {}".format(len(false_pos)))
 	# Display the print in test
 	assert not True
+
+
+def test_applyClf():
+	test_images = importImages(img_test_path)
+	applyClfOnTestImages(test_images, clf, 0.5)
+	assert True

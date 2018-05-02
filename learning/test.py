@@ -10,6 +10,7 @@ from skimage.feature import hog
 from skimage.transform import pyramid_gaussian
 from constants import *
 from util.utils import *
+from util.dataExtraction import importImages
 from util.NMS import *
 
 
@@ -105,3 +106,21 @@ def validateFaceDetection(images, labels, clf):
             err += 1
     err_rate = err * 100 / len(images)
     return err_rate, false_pos
+
+
+def applyClfOnTestImages(test_images, clf, scoreThresh):
+    res = np.empty((0, 6))
+    for (idx, img) in enumerate(test_images):
+        boxes, scores = detectFaces(img, clf, scoreThresh)
+        if len(boxes) > 0:
+            # format boxes to X Y W H
+            boxes[:, 2] = boxes[:, 2] - boxes[:, 0]
+            boxes[:, 3] = boxes[:, 3] - boxes[:, 1]
+            # concatenate scores and indexes to box
+            print("Length : {}".format(len(boxes)))
+            indexes = np.ones((len(boxes), 1), dtype='int') * (idx + 1)
+            scores = scores.reshape(-1, 1)
+            labels = np.concatenate((indexes, boxes, scores), axis=1)
+            res = np.concatenate((res, labels), axis=0)
+
+    np.savetxt(result_path, res, fmt=('%.4d', '%d', '%d', '%d', '%d', '%.2f'))

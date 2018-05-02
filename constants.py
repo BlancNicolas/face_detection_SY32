@@ -9,6 +9,7 @@ import os
 # Constants for paths
 root_path = os.path.dirname(os.path.abspath(__file__))
 img_train_path = root_path + "/data/projetface/train/*.jpg"
+img_test_path = root_path + "/data/projetface/test/*.jpg"
 label_path = root_path + "/data/projetface/label.txt"
 
 extracted_faces_path = "/data/extractedFaces"
@@ -16,7 +17,10 @@ pos_faces = "/pos/*.jpg"
 neg_faces = "/neg/*.jpg"
 extracted_pos_faces_path = root_path + extracted_faces_path + pos_faces
 extracted_neg_faces_path = root_path + extracted_faces_path + neg_faces
+
 fp_path = root_path + extracted_faces_path + "/falsePos/"
+
+result_path = root_path + "/data/projetface/results.txt"
 # Constant for the size of sliding window
 WINDOW_SIZE = [32, 32]
 MAX_WIDTH = 300
