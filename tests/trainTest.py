@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from learning.train import *
+from train import *
 
 images = importImages(img_train_path)
 labels = np.loadtxt(label_path).astype('int')

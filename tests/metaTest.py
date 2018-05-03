@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from learning.test import *
+from test import *
 from util.dataExtraction import importImages
 
 sample_size = 200

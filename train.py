@@ -8,10 +8,8 @@ Created on Tue Apr 17 19:12:33 2018
 
 from sklearn.utils import shuffle
 from sklearn import svm
-from skimage.feature import hog
 from skimage.transform import resize
 from util.dataExtraction import *
-from learning.test import validateFaceDetection
 
 
 #-------------------------------------------------
@@ -34,6 +32,34 @@ def classifierTraining(pos, neg, c_param = 1.0):
         hog_train.append(hog(img))
     hog_train, labels = shuffle(hog_train, labels)
     return clf.fit(hog_train, labels)
+
+
+#-----------------------------------------------
+# ---------- validateTraining ------------------
+# Goal : This functions retrieves the false positives in detected faces
+# INPUT :
+#   - img : image on which the face detection has been done
+#   - boxes : boxes containing the detected face (format X1 Y1 X2 Y2)
+#   - label : label of training image of the form (format X Y L H)
+#
+# OUTPUT :
+#   - false_pos : Boxes corresponding to false postives among input boxes
+#-----------------------------------------------
+def validateFaceDetection(images, labels, clf):
+    false_pos = []
+    err = 0
+    for (idx, img) in enumerate(images):
+        boxes, scores = detectFaces(img, clf)
+        label = labels[idx, 1:]
+        label_box = [label[0], label[1], label[0] + label[2], label[1] + label[3]]
+        for box in boxes:
+            overlap = compareAreas(box, label_box)
+            if overlap < 0.5:
+                false_pos.append(img[box[1]:box[3], box[0]:box[2]])
+        if len(false_pos) == len(boxes):
+            err += 1
+    err_rate = err * 100 / len(images)
+    return err_rate, false_pos
 
 
 #-----------------------------------------------

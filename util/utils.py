@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from skimage.feature import hog
+from skimage.transform import pyramid_gaussian
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from util.NMS import nonMaxSuppression
+from constants import *
 
 
 #-------------------------------------------
@@ -145,3 +149,68 @@ def rescaleBoxes(boxes_array, original_shape, current_shape):
 	boxes_array = checkBoxShape(boxes_array, original_shape)
 
 	return boxes_array
+
+#-----------------------------------------------
+# ---------- detectFaces ------------------
+# Goal : This functions aims at detecting faces the input image.
+# This works in several steps as follow :
+#   1. Compute the gaussian pyramid of the image to make the detection on several sizes
+#   2. For each pyramid level : compute sliding windows and retrieve candidate boxes the classifier detects
+#   3. Rescale candidate boxes to fit on the original image shape
+#   4. Eliminate overlapping candidate boxes using non-maxima suppression
+#   5. Return remaining boxes as validated boxes
+# INPUT :
+#   - image : image to detect face on
+#   - classifier : trained classifier
+#   - threshold : minimum score to for a window to be detected as a face
+#
+# OUTPUT :
+#   - validated_boxes : Boxes corresponding to detected faces on the input image
+#-----------------------------------------------
+def detectFaces(image, classifier, threshold = 0.5):
+	candidate_boxes = np.empty((0,4))
+	candidate_scores = np.array([])
+	validated_boxes = np.empty((0,4))
+	validated_scores = np.empty(0)
+
+	# Pyramid on current image
+	for (i, resized) in enumerate(pyramid_gaussian(image, downscale = 1.5)):
+		if resized.shape[0] < WINDOW_SIZE[0] or resized.shape[1] < WINDOW_SIZE[1]:
+			break
+
+		# Create list of successive sliding windows with corresponding boxes.
+        windows, boxes = slidingWindow(resized, step_size = 16, window_size = WINDOW_SIZE)
+
+        # Compute hog for each sliding window
+        features = np.array([hog(windows[0])])
+        if len(windows) > 1:
+            for w in windows[1:]:
+                features = np.concatenate((features, [hog(w)]), axis = 0)
+
+        # Compute scores based on given classifiers
+        scores = classifier.decision_function(features)
+
+        # Keep only boxes ith a detection probability above 50%
+        mask = np.zeros(features.shape[0], dtype = bool)
+        mask[scores > threshold] = True
+        boxes = boxes[mask]
+        scores = scores[mask]
+
+        # Rescale boxes if image is resized
+        if i > 1:
+            rescaled_boxes = rescaleBoxes(boxes, image.shape, resized.shape)
+            candidate_boxes = np.concatenate((candidate_boxes, rescaled_boxes))
+        else:
+            candidate_boxes = np.concatenate((candidate_boxes, boxes))
+
+        candidate_scores = np.concatenate((candidate_scores, scores))
+
+	# Delete overlapping boxes using non-maxima suppression
+	if len(candidate_boxes) == 1:
+		return candidate_boxes.astype('int'), candidate_scores.astype('float')
+	elif len(candidate_scores) > 1:
+		pick = nonMaxSuppression(candidate_boxes, candidate_scores)
+		validated_boxes = candidate_boxes[pick].astype('int')
+		validated_scores = candidate_scores[pick].astype('float')
+
+	return validated_boxes, validated_scores
