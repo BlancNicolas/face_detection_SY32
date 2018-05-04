@@ -9,7 +9,7 @@ Created on Tue Apr 17 19:12:33 2018
 import glob, errno
 from skimage.color import rgb2gray
 from skimage import io
-from util.utils import *
+from utils import *
 from constants import *
 from random import randint
 from PIL import Image
@@ -36,6 +36,7 @@ def importImages(dir_path):
 
 
 def storeImages(images, path):
+    print("Info : storing images")
     i = 1
     for img in images:
         name = "000{}.jpg".format(i)

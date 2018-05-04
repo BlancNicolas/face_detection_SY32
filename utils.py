@@ -6,8 +6,10 @@ from skimage.feature import hog
 from skimage.transform import pyramid_gaussian
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from util.NMS import nonMaxSuppression
+from NMS import nonMaxSuppression
 from constants import *
+import time
+
 
 
 #-------------------------------------------
@@ -95,20 +97,20 @@ def checkBoxShape(boxes_array, img_shape):
 	to_shift_left = boxes_array[:, 0] > img_shape[1]
 	to_shift_bottom = boxes_array[:, 1] < 0
 	to_shift_top = boxes_array[:, 3] > img_shape[0]
-	
+
 	if to_shift_right.any():
 		boxes_array[to_shift_right, 2] += boxes_array[to_shift_right, 0]
 		boxes_array[to_shift_right, 0] = 0
-		
+
 	if to_shift_left.any():
 		excess = boxes_array[to_shift_left, 2] - img_shape[1]
 		boxes_array[to_shift_left, 0] -= excess
 		boxes_array[to_shift_left, 2] = img_shape[1]
-		
+
 	if to_shift_bottom.any():
 		boxes_array[to_shift_bottom, 3] += boxes_array[to_shift_bottom, 1]
 		boxes_array[to_shift_bottom, 1] = 0
-		
+
 	if to_shift_top.any():
 		excess = boxes_array[to_shift_top, 3] - img_shape[0]
 		boxes_array[to_shift_top, 1] -= excess
@@ -168,25 +170,25 @@ def rescaleBoxes(boxes_array, original_shape, current_shape):
 #   - validated_boxes : Boxes corresponding to detected faces on the input image
 #-----------------------------------------------
 def detectFaces(image, classifier, threshold = 0.5):
-	candidate_boxes = np.empty((0,4))
-	candidate_scores = np.array([])
-	validated_boxes = np.empty((0,4))
-	validated_scores = np.empty(0)
 
-	# Pyramid on current image
-	for (i, resized) in enumerate(pyramid_gaussian(image, downscale = 1.5)):
-		if resized.shape[0] < WINDOW_SIZE[0] or resized.shape[1] < WINDOW_SIZE[1]:
-			break
-
-		# Create list of successive sliding windows with corresponding boxes.
+    candidate_boxes = np.empty((0,4))
+    candidate_scores = np.array([])
+    validated_boxes = np.empty((0,4))
+    validated_scores = np.empty(0)
+    # Pyramid on current image
+    for (i, resized) in enumerate(pyramid_gaussian(image, downscale = 1.5)):
+        if resized.shape[0] < WINDOW_SIZE[0] or resized.shape[1] < WINDOW_SIZE[1]:
+            break
+        # Create list of successive sliding windows with corresponding boxes.
         windows, boxes = slidingWindow(resized, step_size = 16, window_size = WINDOW_SIZE)
 
         # Compute hog for each sliding window
         features = np.array([hog(windows[0])])
+        start_time = time.time()
         if len(windows) > 1:
-            for w in windows[1:]:
-                features = np.concatenate((features, [hog(w)]), axis = 0)
-
+            for idx, w in enumerate(windows[1:]):
+                features[idx] = [hog(w)]
+        print("detectFaces hog computation exec : --- %s seconds ---" % (time.time() - start_time))
         # Compute scores based on given classifiers
         scores = classifier.decision_function(features)
 
@@ -205,12 +207,12 @@ def detectFaces(image, classifier, threshold = 0.5):
 
         candidate_scores = np.concatenate((candidate_scores, scores))
 
-	# Delete overlapping boxes using non-maxima suppression
-	if len(candidate_boxes) == 1:
-		return candidate_boxes.astype('int'), candidate_scores.astype('float')
-	elif len(candidate_scores) > 1:
-		pick = nonMaxSuppression(candidate_boxes, candidate_scores)
-		validated_boxes = candidate_boxes[pick].astype('int')
-		validated_scores = candidate_scores[pick].astype('float')
 
-	return validated_boxes, validated_scores
+    # Delete overlapping boxes using non-maxima suppression
+    if len(candidate_boxes) == 1:
+        return candidate_boxes.astype('int'), candidate_scores.astype('float')
+    elif len(candidate_scores) > 1:
+        pick = nonMaxSuppression(candidate_boxes, candidate_scores)
+        validated_boxes = candidate_boxes[pick].astype('int')
+        validated_scores = candidate_scores[pick].astype('float')
+    return validated_boxes, validated_scores

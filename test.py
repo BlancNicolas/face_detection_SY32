@@ -8,9 +8,9 @@ Created on Tue Apr 17 18:31:30 2018
 
 from train import *
 from constants import *
-from util.utils import *
-from util.dataExtraction import importImages
-from util.NMS import *
+from utils import *
+from dataExtraction import importImages
+from NMS import *
 
 
 def applyClfOnTestImages(test_images, clf, scoreThresh):
@@ -41,4 +41,6 @@ def trainTestAndStore():
 
     test_images = importImages(img_train_path)
     applyClfOnTestImages(test_images, clf, 0.6)
+
+trainTestAndStore()
 

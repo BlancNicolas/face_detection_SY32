@@ -9,7 +9,7 @@ Created on Tue Apr 17 19:12:33 2018
 from sklearn.utils import shuffle
 from sklearn import svm
 from skimage.transform import resize
-from util.dataExtraction import *
+from dataExtraction import *
 
 
 #-------------------------------------------------
@@ -46,6 +46,7 @@ def classifierTraining(pos, neg, c_param = 1.0):
 #   - false_pos : Boxes corresponding to false postives among input boxes
 #-----------------------------------------------
 def validateFaceDetection(images, labels, clf):
+    print("Info : Validating detection")
     false_pos = []
     err = 0
     for (idx, img) in enumerate(images):
@@ -107,7 +108,7 @@ def crossValidTraining(x, y, k):
 def trainAndValidate(images, labels, pos, neg, convThresh, iter_max):
     # train classifier
     clf = classifierTraining(pos, neg)
-
+    print("Info : Classifier trained")
     # apply classifier on train_images and retrieve false positives
     err_rate, false_pos = validateFaceDetection(images, labels, clf)
     print("Info : {}% error after first training".format(err_rate))
@@ -118,7 +119,7 @@ def trainAndValidate(images, labels, pos, neg, convThresh, iter_max):
 
     # Store false positives in the directory falsePos
     storeImages(false_pos, fp_path + str(i))
-
+    print("Info : images stored")
     # Hard negative mining
     prev_err_rate = err_rate
     converged = False
