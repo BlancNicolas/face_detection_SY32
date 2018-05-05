@@ -8,7 +8,6 @@ Created on Tue Apr 17 19:12:33 2018
 
 from sklearn.utils import shuffle
 from sklearn import svm
-from skimage.transform import resize
 from dataExtraction import *
 
 
@@ -45,22 +44,19 @@ def classifierTraining(pos, neg, c_param = 1.0):
 # OUTPUT :
 #   - false_pos : Boxes corresponding to false postives among input boxes
 #-----------------------------------------------
-def validateFaceDetection(images, labels, clf):
+def validateFaceDetection(images, labels, clf, overlapThresh):
     print("Info : Validating detection")
     false_pos = []
-    err = 0
     for (idx, img) in enumerate(images):
         boxes, scores = detectFaces(img, clf)
         label = labels[idx, 1:]
         label_box = [label[0], label[1], label[0] + label[2], label[1] + label[3]]
         for box in boxes:
             overlap = compareAreas(box, label_box)
-            if overlap < 0.08:
+            if overlap < overlapThresh:
                 false_pos.append(img[box[1]:box[3], box[0]:box[2]])
-        if len(false_pos) == len(boxes):
-            err += 1
-    err_rate = err * 100 / len(images)
-    return err_rate, false_pos
+
+    return false_pos
 
 
 #-----------------------------------------------
@@ -70,21 +66,30 @@ def validateFaceDetection(images, labels, clf):
 #   - x : list of images
 #   - y : list of labels
 #   - k : number of partitions wanted for the cross-validation
+#   - C_values : C values to test for chosing best classifier
 #
 # OUTPUT :
 #   - mean_err : mean error of the detection
+#   - clf : best classifier fit with all input data
 #-----------------------------------------------
-def crossValidTraining(x, y, k):
+def crossValidTraining(x, y, k=5, C_values=[0.01, 0.05, 0.1, 0.5, 1, 3, 5, 10]):
     x, y = shuffle(x, y)
-    mean_err = 0
-    for i in range(k):
-        mask = np.zeros(x.shape[0], dtype=bool)
-        mask[np.arange(i, mask.size, k)] = True
-        clf = classifierTraining(x[~mask], y[~mask])
-        err_rate, false_pos = validateFaceDetection(x[mask], y[mask], clf)
-        mean_err += err_rate
-    mean_err /= k
-    return mean_err
+    mean_err = 1
+    for C in C_values:
+        clf = svm.LinearSVC(C = C)
+        errors = np.zeros(k)
+        for i in range(k):
+            mask = np.zeros(x.shape[0], dtype=bool)
+            mask[np.arange(i, mask.size, k)] = True
+            clf.fit(x[~mask], y[~mask])
+            errors[i] = np.mean(clf.predict(x[mask]) != y[mask])
+        e = np.mean(errors)
+        if e < mean_err:
+            mean_err = e
+            best_clf = clf
+            best_clf.fit(y, y)
+
+    return mean_err, clf
 
 
 #-----------------------------------------------
@@ -104,26 +109,31 @@ def crossValidTraining(x, y, k):
 #   - convThresh : threshold expressed in % to know when to stop hard negative mining
 # OUTPUT :
 #   - clf : trained classifier
+#   - mean_err : mean_err associated with the classifier
 #-----------------------------------------------
 def trainAndValidate(images, labels, pos, neg):
     import warnings
     warnings.filterwarnings('ignore') # Removing anoying warnings
+
     # train classifier
-    clf = classifierTraining(pos, neg)
-    print("Info : Classifier trained")
+    examples = np.concatenate((pos, neg))
+    examples_features = computeHogs(examples, resize_images=True)
+    examples_labels = createLabels(len(pos), len(neg))
+
+    mean_err, clf = crossValidTraining(examples_features, examples_labels)
+    print("Info : Classifier trained. Mean Error during training : {]".format(mean_err))
     # apply classifier on train_images and retrieve false positives
-    err_rate, false_pos = validateFaceDetection(images, labels, clf)
-    print("Info : {}% error after first training".format(err_rate))
-    print("Info : Number of False postive after first training : {}".format(len(false_pos)))
+    false_pos = validateFaceDetection(images, labels, clf, overlapThresh=0.1)
+    print("Info : Number of False Postive after first training : {}".format(len(false_pos)))
 
     # Store false positives in the directory falsePos
     storeImages(false_pos, fp_path)
     print("Info : images stored")
+
     # Hard negative mining
     # train classifier again with new negative faces
     neg += false_pos
-    clf = classifierTraining(pos, neg)
+    mean_err, clf = crossValidTraining(examples_features, examples_labels)
+    print("Info : Classifier trainedwith new false positive. Mean Error during training : {]".format(mean_err))
 
-    # TODO : adjust parameters using cross validation
-
-    return clf, err_rate
+    return mean_err, clf

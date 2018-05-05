@@ -3,7 +3,7 @@
 
 import numpy as np
 from skimage.feature import hog
-from skimage.transform import pyramid_gaussian
+from skimage.transform import pyramid_gaussian, resize
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from NMS import nonMaxSuppression
@@ -33,6 +33,19 @@ def displayRectOnImg(image, rect_coord):
     # Add the patch to the Axes
     ax.add_patch(rect)
     plt.show()
+
+
+def computeHogs(images, resize_images=False):
+    if resize_images:
+        for (i, img) in enumerate(images):
+            images[i] = resize(img, (32, 32))
+    # Just visualize the shape of features vector
+    features, img_hog = hog(images[0], visualise=True)
+    hog_set = np.empty((images.shape[0], features.shape[0]))
+    for (i, img) in enumerate(images):
+        features = hog(img)
+        hog_set[i, :] = np.reshape(features, (features.shape[0]))
+    return hog_set
 
 
 # -------------------------------------------

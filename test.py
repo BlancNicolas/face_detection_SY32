@@ -35,15 +35,19 @@ def applyClfOnTestImages(test_images, clf, scoreThresh):
 
 
 def trainTestAndStore():
+    print("Importing data...")
     images = importImages(img_train_path)
     labels = np.loadtxt(label_path).astype('int')
     pos = importImages(extracted_pos_faces_path)
     neg = importImages(extracted_neg_faces_path)
+    test_images = importImages(img_test_path)
+
+    print("Data imported.")
 
     clf, err_rate = trainAndValidate(images, labels, pos, neg)
 
-    test_images = importImages(img_test_path)
     applyClfOnTestImages(test_images, clf, 0.4)
+
 
 trainTestAndStore()
 
