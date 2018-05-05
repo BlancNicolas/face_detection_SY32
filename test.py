@@ -14,6 +14,7 @@ from NMS import *
 
 
 def applyClfOnTestImages(test_images, clf, scoreThresh):
+    print("Info : Test on images")
     res = np.empty((0, 6))
     for (idx, img) in enumerate(test_images):
         boxes, scores = detectFaces(img, clf, scoreThresh)
@@ -29,6 +30,7 @@ def applyClfOnTestImages(test_images, clf, scoreThresh):
             res = np.concatenate((res, labels), axis=0)
 
     np.savetxt(result_path, res, fmt=('%.4d', '%d', '%d', '%d', '%d', '%.2f'))
+    print("Info : Test finished, you can observe results in {result_path}")
 
 
 def trainTestAndStore():
@@ -39,7 +41,7 @@ def trainTestAndStore():
 
     clf, err_rate = trainAndValidate(images, labels, pos, neg, 5, iter_max=3)
 
-    test_images = importImages(img_train_path)
+    test_images = importImages(img_test_path)
     applyClfOnTestImages(test_images, clf, 0.6)
 
 trainTestAndStore()

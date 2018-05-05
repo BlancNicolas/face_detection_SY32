@@ -184,11 +184,9 @@ def detectFaces(image, classifier, threshold = 0.5):
 
         # Compute hog for each sliding window
         features = np.array([hog(windows[0])])
-        start_time = time.time()
         if len(windows) > 1:
-            for idx, w in enumerate(windows[1:]):
-                features[idx] = [hog(w)]
-        print("detectFaces hog computation exec : --- %s seconds ---" % (time.time() - start_time))
+            for w in windows[1:]:
+                features = np.concatenate((features, [hog(w)]), axis = 0)
         # Compute scores based on given classifiers
         scores = classifier.decision_function(features)
 
