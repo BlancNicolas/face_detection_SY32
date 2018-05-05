@@ -9,6 +9,7 @@ Created on Tue Apr 17 19:12:33 2018
 from sklearn.utils import shuffle
 from sklearn import svm
 from dataExtraction import *
+import numpy as np
 
 
 #-------------------------------------------------
@@ -44,19 +45,24 @@ def classifierTraining(pos, neg, c_param = 1.0):
 # OUTPUT :
 #   - false_pos : Boxes corresponding to false postives among input boxes
 #-----------------------------------------------
-def validateFaceDetection(images, labels, clf, overlapThresh):
+def validateFaceDetection(images, labels, clf):
     print("Info : Validating detection")
     false_pos = []
+    false_pos_scores = []
+
     for (idx, img) in enumerate(images):
         boxes, scores = detectFaces(img, clf)
         label = labels[idx, 1:]
         label_box = [label[0], label[1], label[0] + label[2], label[1] + label[3]]
-        for box in boxes:
+        for (idx, box) in enumerate(boxes):
             overlap = compareAreas(box, label_box)
-            if overlap < overlapThresh:
+            if overlap < 0.2:
+                false_pos_scores.append(scores[idx])
                 false_pos.append(img[box[1]:box[3], box[0]:box[2]])
 
-    return false_pos
+    false_pos_scores = np.array(false_pos_scores)
+    false_pos = np.array(false_pos)
+    return false_pos[np.where(false_pos_scores > 0.9)]
 
 
 #-----------------------------------------------
