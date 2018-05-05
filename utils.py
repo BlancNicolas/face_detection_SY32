@@ -40,10 +40,10 @@ def computeHogs(images, resize_images=False):
         for (i, img) in enumerate(images):
             images[i] = resize(img, (32, 32))
     # Just visualize the shape of features vector
-    features, img_hog = hog(images[0], visualise=True)
+    features, img_hog = hog(images[0], visualise=True, cells_per_block=(1,1))
     hog_set = np.empty((images.shape[0], features.shape[0]))
     for (i, img) in enumerate(images):
-        features = hog(img)
+        features = hog(img, cells_per_block=(1,1))
         hog_set[i, :] = np.reshape(features, (features.shape[0]))
     return hog_set
 
@@ -194,7 +194,7 @@ def rescaleBoxes0(boxes_array, original_shape, current_shape):
 # OUTPUT :
 #   - validated_boxes : Boxes corresponding to detected faces on the input image
 # -----------------------------------------------
-def detectFaces(image, classifier, threshold=0.5):
+def detectFaces(image, classifier, threshold=0.2):
     candidate_boxes = np.empty((0, 4))
     candidate_scores = np.array([])
     validated_boxes = np.empty((0, 4))
@@ -203,14 +203,13 @@ def detectFaces(image, classifier, threshold=0.5):
     for (i, resized) in enumerate(pyramid_gaussian(image, downscale=1.5)):
         if resized.shape[0] < WINDOW_SIZE[0] or resized.shape[1] < WINDOW_SIZE[1]:
             break
+
+        step_size = int(min(resized.shape[0], resized.shape[1]) / 20)
         # Create list of successive sliding windows with corresponding boxes.
-        windows, boxes = slidingWindow(resized, step_size=16, window_size=WINDOW_SIZE)
+        windows, boxes = slidingWindow(resized, step_size=step_size, window_size=WINDOW_SIZE)
 
         # Compute hog for each sliding window
-        features = np.array([hog(windows[0])])
-        if len(windows) > 1:
-            for w in windows[1:]:
-                features = np.concatenate((features, [hog(w)]), axis=0)
+        features = computeHogs(windows)
         # Compute scores based on given classifiers
         scores = classifier.decision_function(features)
 

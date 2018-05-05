@@ -131,7 +131,7 @@ def trainAndValidate(images, labels, pos, neg):
     print("Info : Classifier trained. Mean Error during training : {}".format(mean_err))
     print("Optimal C before hard mining : {}".format(C))
     # apply classifier on train_images and retrieve false positives
-    false_pos = validateFaceDetection(images, labels, clf, overlapThresh=0.1)
+    false_pos = validateFaceDetection(images, labels, clf)
     print("Info : Number of False Postive after first training : {}".format(len(false_pos)))
 
     # Store false positives in the directory falsePos
@@ -140,7 +140,9 @@ def trainAndValidate(images, labels, pos, neg):
 
     # Hard negative mining
     # train classifier again with new negative faces
-    neg += false_pos
+    fp_features = computeHogs(false_pos, resize_images=True)
+    examples_features = np.concatenate((examples_features, fp_features), axis = 0)
+    examples_labels = np.concatenate((examples_labels, createLabels(0, false_pos.shape[0])))
     mean_err, clf, C = crossValidTraining(examples_features, examples_labels)
     print("Info : Classifier trainedwith new false positive. Mean Error during training : {}".format(mean_err))
     print("Optimal C after hard mining : {}".format(C))

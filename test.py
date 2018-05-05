@@ -46,7 +46,7 @@ def trainTestAndStore():
 
     clf, err_rate = trainAndValidate(images, labels, pos, neg)
 
-    applyClfOnTestImages(test_images, clf, 0.4)
+    applyClfOnTestImages(test_images[:5], clf, 0.2)
 
 
 trainTestAndStore()
