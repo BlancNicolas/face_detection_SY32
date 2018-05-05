@@ -72,7 +72,7 @@ def validateFaceDetection(images, labels, clf, overlapThresh):
 #   - mean_err : mean error of the detection
 #   - clf : best classifier fit with all input data
 #-----------------------------------------------
-def crossValidTraining(x, y, k=5, C_values=[0.01, 0.05, 0.1, 0.5, 1, 3, 5, 10]):
+def crossValidTraining(x, y, k=5, C_values=[0.01, 0.05, 0.1, 0.5, 1]):
     x, y = shuffle(x, y)
     mean_err = 1
     for C in C_values:
@@ -85,11 +85,12 @@ def crossValidTraining(x, y, k=5, C_values=[0.01, 0.05, 0.1, 0.5, 1, 3, 5, 10]):
             errors[i] = np.mean(clf.predict(x[mask]) != y[mask])
         e = np.mean(errors)
         if e < mean_err:
+            c_opt = C
             mean_err = e
             best_clf = clf
-            best_clf.fit(y, y)
+            best_clf.fit(x, y)
 
-    return mean_err, clf
+    return mean_err, clf, C
 
 
 #-----------------------------------------------
@@ -120,8 +121,9 @@ def trainAndValidate(images, labels, pos, neg):
     examples_features = computeHogs(examples, resize_images=True)
     examples_labels = createLabels(len(pos), len(neg))
 
-    mean_err, clf = crossValidTraining(examples_features, examples_labels)
-    print("Info : Classifier trained. Mean Error during training : {]".format(mean_err))
+    mean_err, clf, C = crossValidTraining(examples_features, examples_labels)
+    print("Info : Classifier trained. Mean Error during training : {}".format(mean_err))
+    print("Optimal C before hard mining : {}".format(C))
     # apply classifier on train_images and retrieve false positives
     false_pos = validateFaceDetection(images, labels, clf, overlapThresh=0.1)
     print("Info : Number of False Postive after first training : {}".format(len(false_pos)))
@@ -133,7 +135,7 @@ def trainAndValidate(images, labels, pos, neg):
     # Hard negative mining
     # train classifier again with new negative faces
     neg += false_pos
-    mean_err, clf = crossValidTraining(examples_features, examples_labels)
-    print("Info : Classifier trainedwith new false positive. Mean Error during training : {]".format(mean_err))
-
-    return mean_err, clf
+    mean_err, clf, C = crossValidTraining(examples_features, examples_labels)
+    print("Info : Classifier trainedwith new false positive. Mean Error during training : {}".format(mean_err))
+    print("Optimal C after hard mining : {}".format(C))
+    return clf, mean_err
