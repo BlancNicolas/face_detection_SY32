@@ -106,6 +106,8 @@ def crossValidTraining(x, y, k):
 #   - clf : trained classifier
 #-----------------------------------------------
 def trainAndValidate(images, labels, pos, neg, convThresh, iter_max):
+    import warnings
+    warnings.filterwarnings('ignore') # Removing anoying warnings
     # train classifier
     clf = classifierTraining(pos, neg)
     print("Info : Classifier trained")
