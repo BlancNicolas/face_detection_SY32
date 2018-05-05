@@ -209,7 +209,7 @@ def detectFaces(image, classifier, threshold=0.5):
 
         # Rescale boxes if image is resized
         if i > 1:
-            rescaled_boxes = rescaleBoxes(boxes, image.shape, resized.shape)
+            rescaled_boxes = rescaleBoxes(boxes, image.shape[0], resized.shape[0])
             candidate_boxes = np.concatenate((candidate_boxes, rescaled_boxes))
         else:
             candidate_boxes = np.concatenate((candidate_boxes, boxes))
