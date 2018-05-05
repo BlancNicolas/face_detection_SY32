@@ -40,10 +40,10 @@ def trainTestAndStore():
     pos = importImages(extracted_pos_faces_path)
     neg = importImages(extracted_neg_faces_path)
 
-    clf, err_rate = trainAndValidate(images[:50], labels[:50], pos[:50], neg[:100], 5, iter_max=3)
+    clf, err_rate = trainAndValidate(images, labels, pos, neg)
 
     test_images = importImages(img_test_path)
-    applyClfOnTestImages(test_images[:50], clf, 0.6)
+    applyClfOnTestImages(test_images, clf, 0.4)
 
 trainTestAndStore()
 

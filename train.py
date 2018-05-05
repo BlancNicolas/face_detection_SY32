@@ -55,7 +55,7 @@ def validateFaceDetection(images, labels, clf):
         label_box = [label[0], label[1], label[0] + label[2], label[1] + label[3]]
         for box in boxes:
             overlap = compareAreas(box, label_box)
-            if overlap < 0.5:
+            if overlap < 0.08:
                 false_pos.append(img[box[1]:box[3], box[0]:box[2]])
         if len(false_pos) == len(boxes):
             err += 1
@@ -105,7 +105,7 @@ def crossValidTraining(x, y, k):
 # OUTPUT :
 #   - clf : trained classifier
 #-----------------------------------------------
-def trainAndValidate(images, labels, pos, neg, convThresh, iter_max):
+def trainAndValidate(images, labels, pos, neg):
     import warnings
     warnings.filterwarnings('ignore') # Removing anoying warnings
     # train classifier
@@ -116,31 +116,13 @@ def trainAndValidate(images, labels, pos, neg, convThresh, iter_max):
     print("Info : {}% error after first training".format(err_rate))
     print("Info : Number of False postive after first training : {}".format(len(false_pos)))
 
-    # i will serve to know the current iteration and to distinguish false positives names of different iterations
-    i = 1
-
     # Store false positives in the directory falsePos
-    storeImages(false_pos, fp_path + str(i))
+    storeImages(false_pos, fp_path)
     print("Info : images stored")
     # Hard negative mining
-    prev_err_rate = err_rate
-    converged = False
-    niter = 0
-    while not converged or niter < iter_max:
-        i += 1
-        niter += 1
-        # train classifier again with new negative faces
-        neg += false_pos
-        clf = classifierTraining(pos, neg)
-        err_rate, false_pos = validateFaceDetection(images, labels, clf)
-        print("Info : {}% error after {}e training".format(err_rate, i))
-        print("Info : Number of False postive after {}e training : {}".format(i, len(false_pos)))
-        # Store false positives in the directory falsePos
-        storeImages(false_pos, fp_path + str(i))
-
-        # Check the convergence
-        converged = abs(err_rate - prev_err_rate) < convThresh
-        prev_err_rate = err_rate
+    # train classifier again with new negative faces
+    neg += false_pos
+    clf = classifierTraining(pos, neg)
 
     # TODO : adjust parameters using cross validation
 
