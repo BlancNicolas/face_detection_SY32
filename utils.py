@@ -194,7 +194,7 @@ def rescaleBoxes0(boxes_array, original_shape, current_shape):
 # OUTPUT :
 #   - validated_boxes : Boxes corresponding to detected faces on the input image
 # -----------------------------------------------
-def detectFaces(image, classifier, threshold=0.2):
+def detectFaces(image, classifier, threshold=0.1):
     candidate_boxes = np.empty((0, 4))
     candidate_scores = np.array([])
     validated_boxes = np.empty((0, 4))

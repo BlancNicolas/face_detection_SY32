@@ -28,7 +28,7 @@ img_train_dir_content = sorted(glob.glob(img_train_path))
 #-----------------------------------------------
 def importImages(dir_path):
     images = []
-    for fimage in glob.glob(dir_path):
+    for fimage in sorted(glob.glob(dir_path)):
         img = io.imread(fimage)
         img = rgb2gray(img)
         images.append(img)
