@@ -20,14 +20,14 @@ import time
 # OUTPUT : numpy array of yes and no labels
 # -------------------------------------------
 def displayRectOnImg(image, rect_coord):
-    height = rect_coord[3] - rect_coord[1]
-    width = rect_coord[2] - rect_coord[0]
+    height = rect_coord[4]
+    width = rect_coord[3]
     # Create figure and axes
     fig, ax = plt.subplots(1)
     # Display the image
     ax.imshow(image)
     # Create a Rectangle patch
-    rect = patches.Rectangle((rect_coord[0], rect_coord[1]),
+    rect = patches.Rectangle((rect_coord[1], rect_coord[2]),
                              width, height,
                              linewidth=1, edgecolor='r', facecolor='none')
     # Add the patch to the Axes
@@ -200,7 +200,7 @@ def detectFaces(image, classifier, threshold=0.1):
     validated_boxes = np.empty((0, 4))
     validated_scores = np.empty(0)
     # Pyramid on current image
-    for (i, resized) in enumerate(pyramid_gaussian(image, downscale=1.5)):
+    for (i, resized) in enumerate(pyramid_gaussian(image, downscale=1.2)):
         if resized.shape[0] < WINDOW_SIZE[0] or resized.shape[1] < WINDOW_SIZE[1]:
             break
 
